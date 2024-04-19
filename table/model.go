@@ -28,10 +28,12 @@ type Model struct {
 	missingDataIndicator interface{}
 
 	// Interaction
-	focused        bool
-	keyMap         KeyMap
-	selectableRows bool
-	rowCursorIndex int
+	focused             bool
+	keyMap              KeyMap
+	selectableRows      bool
+	rowCursorIndex      int
+	columnCursorIndex   int
+	lastShowColumnIndex int
 
 	// Events
 	lastUpdateUserEvents []UserEvent
@@ -92,6 +94,28 @@ type Model struct {
 
 	// If true, the table will be multiline
 	multiline bool
+}
+
+func (m Model) HorizontalScrollOffsetCol() int {
+	return m.horizontalScrollOffsetCol
+}
+
+func (m Model) Columns() int {
+	return len(m.columns) - 1
+}
+
+func (m Model) CurrentColumnIndex() int {
+	return m.columnCursorIndex
+}
+func (m Model) CurrentRowIndex() int {
+	return m.rowCursorIndex
+}
+
+func (m Model) MaxHorizontalColumnIndex() int {
+	return m.maxHorizontalColumnIndex
+}
+func (m Model) LastShowColumnIndex() int {
+	return m.lastShowColumnIndex
 }
 
 // New creates a new table ready for further modifications.

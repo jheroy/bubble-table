@@ -78,6 +78,7 @@ func updateColumnWidths(cols []Column, totalWidth int) {
 
 func (m *Model) recalculateHeight() {
 	header := m.renderHeaders()
+
 	headerHeight := 1 // Header always has the top border
 	if m.headerVisible {
 		headerHeight = lipgloss.Height(header)

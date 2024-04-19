@@ -1,6 +1,8 @@
 package table
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 // This is long and could use some refactoring in the future, but unsure of how
 // to pick it apart right now.
@@ -73,6 +75,7 @@ func (m Model) renderHeaders() string {
 				overflowWidth := m.maxTotalWidth - totalRenderedWidth - borderAdjustment
 				overflowStyle := genOverflowStyle(headerStyles.right, overflowWidth)
 				overflowColumn := genOverflowColumnRight(overflowWidth)
+				m.lastShowColumnIndex = columnIndex
 
 				overflowStr := renderHeader(overflowColumn, overflowStyle)
 

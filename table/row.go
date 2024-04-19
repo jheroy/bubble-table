@@ -45,8 +45,11 @@ func (r Row) WithStyle(style lipgloss.Style) Row {
 }
 
 //nolint:nestif,cyclop // This has many ifs, but they're short
-func (m Model) renderRowColumnData(row Row, column Column, rowStyle lipgloss.Style, borderStyle lipgloss.Style) string {
+func (m Model) renderRowColumnData(rowIndex, columnIndex int, row Row, column Column, rowStyle lipgloss.Style, borderStyle lipgloss.Style) string {
 	cellStyle := rowStyle.Copy().Inherit(column.style).Inherit(m.baseStyle)
+	if m.rowCursorIndex == rowIndex && columnIndex == m.columnCursorIndex {
+		cellStyle = cellStyle.Inherit(m.highlightStyle)
+	}
 
 	var str string
 
@@ -102,26 +105,26 @@ func (m Model) renderRowColumnData(row Row, column Column, rowStyle lipgloss.Sty
 
 func (m Model) renderRow(rowIndex int, last bool) string {
 	row := m.GetVisibleRows()[rowIndex]
-	highlighted := rowIndex == m.rowCursorIndex
+	// highlighted := rowIndex == m.rowCursorIndex
 
 	rowStyle := row.Style.Copy()
 
-	if m.focused && highlighted {
-		rowStyle = rowStyle.Inherit(m.highlightStyle)
-	}
+	// if m.focused && highlighted {
+	// 	rowStyle = rowStyle.Inherit(m.highlightStyle)
+	// }
 
-	return m.renderRowData(row, rowStyle, last)
+	return m.renderRowData(rowIndex, row, rowStyle, last)
 }
 
 func (m Model) renderBlankRow(last bool) string {
-	return m.renderRowData(NewRow(nil), lipgloss.NewStyle(), last)
+	return m.renderRowData(len(m.GetVisibleRows())-1, NewRow(nil), lipgloss.NewStyle(), last)
 }
 
 // This is long and could use some refactoring in the future, but not quite sure
 // how to pick it apart yet.
 //
 //nolint:funlen, cyclop, gocognit
-func (m Model) renderRowData(row Row, rowStyle lipgloss.Style, last bool) string {
+func (m Model) renderRowData(rowIndex int, row Row, rowStyle lipgloss.Style, last bool) string {
 	numColumns := len(m.columns)
 
 	columnStrings := []string{}
@@ -131,8 +134,8 @@ func (m Model) renderRowData(row Row, rowStyle lipgloss.Style, last bool) string
 
 	maxCellHeight := 1
 	if m.multiline {
-		for _, column := range m.columns {
-			cellStr := m.renderRowColumnData(row, column, rowStyle, lipgloss.NewStyle())
+		for columnIndex, column := range m.columns {
+			cellStr := m.renderRowColumnData(rowIndex, columnIndex, row, column, rowStyle, lipgloss.NewStyle())
 			maxCellHeight = max(maxCellHeight, lipgloss.Height(cellStr))
 		}
 	}
@@ -157,7 +160,7 @@ func (m Model) renderRowData(row Row, rowStyle lipgloss.Style, last bool) string
 				borderStyle = rowStyles.inner.Copy()
 			}
 
-			rendered := m.renderRowColumnData(row, genOverflowColumnLeft(1), rowStyle, borderStyle)
+			rendered := m.renderRowColumnData(rowIndex, columnIndex, row, genOverflowColumnLeft(1), rowStyle, borderStyle)
 
 			totalRenderedWidth += lipgloss.Width(rendered)
 
@@ -177,7 +180,7 @@ func (m Model) renderRowData(row Row, rowStyle lipgloss.Style, last bool) string
 			borderStyle = rowStyles.right
 		}
 
-		cellStr := m.renderRowColumnData(row, column, rowStyle, borderStyle)
+		cellStr := m.renderRowColumnData(rowIndex, columnIndex, row, column, rowStyle, borderStyle)
 
 		if m.maxTotalWidth != 0 {
 			renderedWidth := lipgloss.Width(cellStr)
@@ -199,7 +202,8 @@ func (m Model) renderRowData(row Row, rowStyle lipgloss.Style, last bool) string
 				overflowWidth := m.maxTotalWidth - totalRenderedWidth - borderAdjustment
 				overflowStyle := genOverflowStyle(rowStyles.right, overflowWidth)
 				overflowColumn := genOverflowColumnRight(overflowWidth)
-				overflowStr := m.renderRowColumnData(row, overflowColumn, rowStyle, overflowStyle)
+				overflowStr := m.renderRowColumnData(rowIndex, columnIndex, row, overflowColumn, rowStyle, overflowStyle)
+				// m.lastShowColumnIndex = columnIndex
 
 				columnStrings = append(columnStrings, overflowStr)
 
